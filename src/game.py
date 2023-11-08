@@ -1,4 +1,4 @@
-import pygame as pg
+import pygame
 
 from src.geo import World
 from src.player import Player
@@ -8,68 +8,81 @@ from src.dice import Dice
 
 class Game:
     def __init__(
-        self, screen: pg.Surface, clock: pg.time.Clock, window_size: pg.Vector2
+        self, screen: pygame.Surface, clock: pygame.time.Clock, window_size: pygame.Vector2
     ) -> None:
+        #initializes game state and attributes
         self.error_message = None
         self.error_message_time= 0
         self.screen = screen
         self.clock = clock
         self.window_size = window_size
-        self.font = pg.font.SysFont(None, 24)
+        self.font = pygame.font.SysFont(None, 24)
         self.playing = True
         self.phases = ["place_units", "move_units", "attack_country"]
         self.phase_idx = 0
         self.phase = self.phases[self.phase_idx]
-        self.phase_timer = pg.time.get_ticks()
+        self.phase_timer = pygame.time.get_ticks()
         self.world = World(self)
         self.player = Player(
             name="Player 1",  # You can replace "Player 1" with any desired player name
             country=self.world.countries.get("United States of America"),
             world=self.world,
-            color=(0, 0, 255)  # RGB color code for blue
+            color=(0, 0, 255)  #set player color to blue
         )
+        print("creating phase ui")
         self.create_phase_ui()
 
     def run(self) -> None:
+        #runs game loop
         while self.playing:
             self.clock.tick(60)
             self.screen.fill((245, 245, 220))
             self.events()
             self.update()
             self.draw()
-            pg.display.update()
+            pygame.display.update()
 
     def events(self) -> None:
-        current_time = pg.time.get_ticks()
-        self.roll_dice_button_hovered = False  # Reset this flag for each new event loop
+        #handles user inputs and events
+        current_time = pygame.time.get_ticks()
+        # self.roll_dice_button_hovered = False  # Reset this flag for each new event loop
 
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
                 self.playing = False
-            elif event.type == pg.KEYDOWN:
-                if event.key == pg.K_ESCAPE:
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
                     self.playing = False
-            elif event.type == pg.MOUSEMOTION:
-                if self.roll_dice_button.collidepoint(pg.mouse.get_pos()):
+            elif event.type == pygame.MOUSEMOTION:
+                if self.roll_dice_button.collidepoint(pygame.mouse.get_pos()):
                     self.roll_dice_button_hovered = True
-            elif event.type == pg.MOUSEBUTTONDOWN and event.button == 1:  # Left mouse click
-             if self.roll_dice_button_hovered and self.phase == "attack_country":
-                # Roll the dice when the button is pressed and in the correct phase
-                attacker_dice = Dice.attacker_dice_roll(3)  # Assuming the attacker rolls 3 dice
-                defender_dice = Dice.defender_dice_roll(2)  # Assuming the defender rolls 2 dice
-                print("Attacker Dice:", attacker_dice)
-                print("Defender Dice:", defender_dice)
-                # Now you can use the result of the dice roll for the attack
-            elif self.roll_dice_button_hovered:
-                self.error_message = "Can't roll dice until you enter attack phase"
-                pg.time.set_timer(pg.USEREVENT, 2000)  # Start a timer for 2 seconds
-            elif event.type == pg.USEREVENT:
-                self.error_message = None  # Clear the error message after 2 seconds
-                pg.time.set_timer(pg.USEREVENT, 0)  # Stop the timer
+                elif not self.roll_dice_button.collidepoint(pygame.mouse.get_pos()):
+                    self.roll_dice_button_hovered = False
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Left mouse click
+                if self.roll_dice_button_hovered and self.phase == "attack_country":
+                    # Roll the dice when the button is pressed and in the correct phase
+                    attacker_dice = Dice.attacker_dice_roll(3)  # Assuming the attacker rolls 3 dice
+                    defender_dice = Dice.defender_dice_roll(2)  # Assuming the defender rolls 2 dice
+                    print("Attacker Dice:", attacker_dice)
+                    print("Defender Dice:", defender_dice)
+                    # Now you can use the result of the dice roll for the attack
+                elif self.roll_dice_button_hovered:
+                    error_duration = 2000
+                    remove_error = False
+                    while not remove_error:
 
+                        self.error_message = "CANNOT ROLL DICE UNTIL YOU ENTER ATTACK PHASE!"
+                        self.display_error_message(self.screen)
 
+                        pygame.display.update()
 
-    def display_error_message(self, screen: pg.Surface) -> None:
+                        error_duration -= self.clock.tick(60)
+                        if error_duration <= 0:
+                            remove_error = True
+                        
+                    self.error_message = None
+
+    def display_error_message(self, screen: pygame.Surface) -> None:
         # Check if there's an error message to display
         if self.error_message:
             error_surface = self.font.render(self.error_message, True, (255, 0, 0))  # Red text for error
@@ -77,20 +90,21 @@ class Game:
             screen.blit(error_surface, error_rect)
 
             # Now reset the error_message after 2 seconds
-            pg.time.set_timer(pg.USEREVENT, 2000)
+            pygame.time.set_timer(pygame.USEREVENT, 2000)
 
 
     def update(self) -> None:
-        now = pg.time.get_ticks()
+        #updates game state 
+        now = pygame.time.get_ticks()
         self.world.update()
         self.player.update(self.phase)
 
         self.finish_phase_button_hovered = False
-        if self.finish_phase_button.collidepoint(pg.mouse.get_pos()):
+        if self.finish_phase_button.collidepoint(pygame.mouse.get_pos()):
             self.finish_phase_button_hovered = True
 
         if self.finish_phase_button_hovered:
-            if pg.mouse.get_pressed()[0] and (now - self.phase_timer > 500):
+            if pygame.mouse.get_pressed()[0] and (now - self.phase_timer > 500):
                 self.phase_timer = now
                 self.phase_idx = (self.phase_idx + 1) % len(self.phases)
                 self.phase = self.phases[self.phase_idx]
@@ -104,21 +118,23 @@ class Game:
         self.screen.blit(text_surface, (10, 10))
 
     def create_phase_ui(self) -> None:
-        self.current_phase_image = pg.Surface((200, 50))
+        #create the UI for the game phases
+        self.current_phase_image = pygame.Surface((200, 50))
         self.current_phase_image.fill((25, 42, 86))
         self.current_phase_rect = self.current_phase_image.get_rect(topleft=(10, 10))
 
-        self.finish_phase_image = pg.Surface((200, 50))
+        self.finish_phase_image = pygame.Surface((200, 50))
         self.finish_phase_image.fill((25, 42, 86))
         self.finish_phase_button = self.finish_phase_image.get_rect(topleft=(10, 70))
         self.finish_phase_button_hovered = False
 
-        self.roll_dice_image = pg.Surface((200, 50))
+        self.roll_dice_image = pygame.Surface((200, 50))
         self.roll_dice_image.fill((25, 42, 86))
         self.roll_dice_button = self.roll_dice_image.get_rect(topleft=(10, 130))
         self.roll_dice_button_hovered = False
 
     def draw_phase_ui(self) -> None:
+        #draw the phase UI elements on the screen
         self.screen.blit(self.current_phase_image, self.current_phase_rect)
         if self.phase == "place_units":
             draw_text(
@@ -155,10 +171,10 @@ class Game:
         else:
             self.roll_dice_image.fill((25, 42, 86))
 
-# Draw the button on the screen
+        # Draw the button on the screen
         self.screen.blit(self.roll_dice_image, self.roll_dice_button)
 
-# Draw the button text
+        # Draw the button text
         draw_text(
             self.screen,
             self.font,
@@ -168,13 +184,6 @@ class Game:
             self.roll_dice_button.centery,
             True,
         )
-
-            # attacker_armies = self.player.get_attacker_armies()  # Define this method in Player class
-            # defender_armies = self.enemy_player.get_defender_armies()  # Define this method in Player class
-            # defender_player = self.enemy_player  # This assumes you have a reference to the enemy player
-
-            # # Now, call the attack_country method with the correct arguments
-            # self.player.attack_country(attacker_armies, defender_armies, defender_player)
 
         if self.finish_phase_button_hovered:
             self.finish_phase_image.fill((255, 0, 0))
