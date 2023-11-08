@@ -1,4 +1,4 @@
-import pygame as pg
+import pygame as pygame
 
 class World:
     # ... other methods and initializations ...
