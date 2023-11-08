@@ -1,4 +1,4 @@
-import pygame as pg
+import pygame as pygame
 
 
 def draw_text(screen, font, text, color, x, y, center=False, size=20):
