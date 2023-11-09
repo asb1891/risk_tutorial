@@ -8,38 +8,42 @@ from src.utils import draw_text, draw_multiline_text
 
 
 class Country:
-    #initializing a country with name, coordinates, armies etc
+    # Constructor for the Country class: Initializes a country with its name, coordinates, and other properties.
     def __init__(self, name: str, coords: list) -> None:
-        self.name = name
-        self.attack_armies= 1
-        self.coords = coords
-        self.font = pygame.font.SysFont(None, 24)
-        self.polygon = Polygon(self.coords)
-        self.center = self.get_center()
-        self.units = random.randint(1, 3)
-        self.color = (72, 126, 176)
-        self.hovered = False
-        self.neighbours = None
+        self.name = name  # Name of the country.
+        self.attack_armies = 1  # The initial number of attacking armies is set to 1.
+        self.coords = coords  # Coordinates defining the country's polygon on the map.
+        self.font = pygame.font.SysFont(None, 24)  # Font for rendering text.
+        self.polygon = Polygon(self.coords)  # Create a polygon from the coordinates.
+        self.center = self.get_center()  # Calculate the geometric center of the country.
+        self.units = random.randint(1, 3)  # Randomly assign 1-3 units to the country.
+        self.color = (72, 126, 176)  # Default color for the country.
+        self.hovered = False  # State to track if the mouse is hovering over the country.
+        self.neighbours = None  # Neighboring countries, not initialized here.
 
+    # Method to update the country's state based on the mouse position.
     def update(self, mouse_pos: pygame.Vector2) -> None:
-        #checks if the mouse is over the country's coordinates
-        self.hovered = False
+        self.hovered = False  # Reset the hovered state.
+        # Check if the mouse position is within the country's polygon area.
         if Point(mouse_pos.x, mouse_pos.y).within(self.polygon):
-            self.hovered = True
+            self.hovered = True  # Set hovered to true if the mouse is over the country.
 
+    # Method to draw the country on the screen, including its armies count.
     def draw(self, screen: pygame.Surface, scroll: pygame.Vector2) -> None:
-        #draws the country and its details on the screen
+        # Draw the country's polygon. If hovered, the color changes to red.
         pygame.draw.polygon(
             screen,
             (255, 0, 0) if self.hovered else self.color,
             [(x - scroll.x, y - scroll.y) for x, y in self.coords],
         )
+        # Draw the polygon's outline in white.
         pygame.draw.polygon(
             screen,
             (255, 255, 255),
             [(x - scroll.x, y - scroll.y) for x, y in self.coords],
             width=1,
         )
+        # Render the text showing the number of units on the country, centered.
         draw_text(
             screen,
             self.font,
@@ -49,9 +53,9 @@ class Country:
             self.center.y - scroll.y,
             True,
         )
-
+    # Helper method to calculate the geometric center of the country's polygon.
     def get_center(self) -> pygame.Vector2:
-        #calculates the geometric center of a country's polygon
+        # Use pandas Series to calculate the mean of x and y coordinates.
         return pygame.Vector2(
             Series([x for x, y in self.coords]).mean(),
             Series([y for x, y in self.coords]).mean(),
@@ -59,28 +63,25 @@ class Country:
 
 
 class World:
+    # Class-level constants defining the size of the game world map.
+    MAP_WIDTH = 2.05 * 4000 * 0.6  # The width of the map, calculated using a base width and a scaling factor.
+    MAP_HEIGHT = 1.0 * 4000 * 0.6  # The height of the map, calculated similarly to the width.
+    SCALE_FACTOR = 1  # A scaling factor used for coordinate scaling; currently set to 1, so it has no effect.
 
-    #defining the size of the map
-    MAP_WIDTH = 2.05 * 4000 * 0.6
-    MAP_HEIGHT = 1.0 * 4000 * 0.6
-    #a constant used to scale coordinates
-    SCALE_FACTOR = 1
-    
-
+    # Constructor for the World class.
     def __init__(self, game) -> None:
-        #initializes game world, geographic data, creates countries, sets up UI
-        self.game= game
-        self.read_geo_data()
-        self.countries = self.create_countries()
-        self.create_neighbours()
-        self.players = []
-        self.scroll = pygame.Vector2(2000, 500)
-        self.font = pygame.font.SysFont(None, 24)
+        self.game = game  # A reference to the main game object.
+        self.read_geo_data()  # Method call to read geographical data, not defined in this snippet.
+        self.countries = self.create_countries()  # Creates country objects, method not defined in this snippet.
+        self.create_neighbours()  # Sets up neighboring countries, method not defined in this snippet.
+        self.players = []  # A list to hold player objects.
+        self.scroll = pygame.Vector2(2000, 500)  # Initial scrolling offset for the map view.
+        self.font = pygame.font.SysFont(None, 24)  # Font for rendering text on the UI.
 
-        # hovering countries panel
-        self.hovered_country = None
-        self.hover_surface = pygame.Surface((300, 100), pygame.SRCALPHA)
-        self.hover_surface.fill((25, 42, 86, 155))
+        # Initializes a UI element that appears when a country is hovered over.
+        self.hovered_country = None  # The country object that is currently being hovered by the mouse.
+        self.hover_surface = pygame.Surface((300, 100), pygame.SRCALPHA)  # A surface for the hovering UI panel.
+        self.hover_surface.fill((25, 42, 86, 155))  # Fills the hover surface with a semi-transparent color.
 
     def read_geo_data(self) -> None:
         #loads the geo data from the JSON file
@@ -158,29 +159,37 @@ class World:
         if keys[pygame.K_SPACE]:
             self.scroll = pygame.Vector2(3650, 395)
 
-
     def draw_hovered_country(self, screen: pygame.Surface) -> None:
-    # Draw the UI elements related to the country the mouse is hovering over
+        #drawes the UI elements related to the country the mouse is hovering over
         screen.blit(self.hover_surface, (1280 - 310, 720 - 110))
 
-        plus_button_pos = (1280 - 310 + 200, 720 - 90)
-        minus_button_pos = (1280 - 310 + 150, 720 - 90)
-
-        # Draws interactive buttons on the screen
+        plus_button_pos = (1280 - 310 + 200, 720- 90)
+        minus_button_pos = (1280 - 310 + 150, 720-90)
+        #draws interactive buttons on the screen
         self.draw_button(screen, "+", plus_button_pos, self.increment_armies)
         self.draw_button(screen, "-", minus_button_pos, self.decrement_armies)
+    # def draw_hovered_country(self, screen: pygame.Surface) -> None:
+    # Draw the UI elements related to the country the mouse is hovering over
+        # screen.blit(self.hover_surface, (1280 - 310, 720 - 110))
 
-        # Check for a click event
-        for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                # Get the mouse position
-                mouse_pos = event.pos
+        # plus_button_pos = (1280 - 310 + 200, 720 - 90)
+        # minus_button_pos = (1280 - 310 + 150, 720 - 90)
 
-                # Check if the plus or minus button was clicked
-                if plus_button_rect.collidepoint(mouse_pos):
-                    self.increment_armies()
-                elif minus_button_rect.collidepoint(mouse_pos):
-                    self.decrement_armies()
+        # # Draws interactive buttons on the screen
+        # self.draw_button(screen, "+", plus_button_pos, self.increment_armies)
+        # self.draw_button(screen, "-", minus_button_pos, self.decrement_armies)
+
+        # # Check for a click event
+        # for event in pygame.event.get():
+        #     if event.type == pygame.MOUSEBUTTONDOWN:
+        #         # Get the mouse position
+        #         mouse_pos = event.pos
+
+        #         # Check if the plus or minus button was clicked
+        #         if plus_button_rect.collidepoint(mouse_pos):
+        #             self.increment_armies()
+        #         elif minus_button_rect.collidepoint(mouse_pos):
+        #             self.decrement_armies()
 
     # # You would define the rectangles for the buttons when you create them
     # plus_button_rect = pygame.Rect(plus_button_pos[0], plus_button_pos[1], button_width, button_height)
