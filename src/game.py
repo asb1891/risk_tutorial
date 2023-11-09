@@ -7,6 +7,7 @@ from src.dice import Dice
 
 
 class Game:
+
     def __init__(
         self, screen: pygame.Surface, clock: pygame.time.Clock, window_size: pygame.Vector2
     ) -> None:
@@ -17,6 +18,8 @@ class Game:
         self.clock = clock
         self.window_size = window_size
         self.font = pygame.font.SysFont(None, 24)
+        self.plus_button_pos = (0, 0)  # Replace with actual x and y coordinates for the "+" button
+        self.minus_button_pos = (0, 0)
         self.playing = True
         self.phases = ["place_units", "move_units", "attack_country"]
         self.phase_idx = 0
@@ -27,7 +30,8 @@ class Game:
             name="Player 1",  # You can replace "Player 1" with any desired player name
             country=self.world.countries.get("United States of America"),
             world=self.world,
-            color=(0, 0, 255)  #set player color to blue
+            color=(0, 0, 255),
+            game=self  #set player color to blue
         )
         print("creating phase ui")
         self.create_phase_ui()
@@ -116,6 +120,8 @@ class Game:
             f"FPS: {int(self.clock.get_fps())}", False, (255, 255, 255)
         )
         self.screen.blit(text_surface, (10, 10))
+        self.world.draw_button(self.screen, "+", self.plus_button_pos, self.world.increment_armies)
+        self.world.draw_button(self.screen, "-", self.minus_button_pos, self.world.decrement_armies)
 
     def create_phase_ui(self) -> None:
         #create the UI for the game phases
