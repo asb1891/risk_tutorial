@@ -11,11 +11,14 @@ from src.dice import Dice
 
 # Assuming the necessary classes are imported from their respective modules
 class Player:
-    def __init__(self, name, country: Country, world: World,  color: tuple) -> None:
+    def __init__(self, game, name, country: Country, world: World, color: tuple) -> None:
         self.name = name
+        self.game = game
         self.country = country
         self.countries = []
         self.world = world
+        self.plus_button_pos = (0, 0)  # Replace with actual x and y coordinates for the "+" button
+        self.minus_button_pos = (0, 0)
         self.color = color
         self.mouse_get_pressed= pygame.mouse.get_pressed
         self.country.color = self.color
@@ -30,12 +33,52 @@ class Player:
             self.attack_country()
 
     def place_units(self) -> None:
+        # from src.game import Game
         navigable_countries = self.get_navigable_countries()
         now = pygame.time.get_ticks()
+        
+        # Draw and interact with plus and minus buttons
         for navigable_country in navigable_countries:
+            if navigable_country.hovered:
+                # Define positions for plus and minus buttons relative to the country's location
+                plus_button_pos= (navigable_country.center[0] +50, navigable_country.center[1]) # Example position
+                minus_button_pos= (navigable_country.center[0] -50, navigable_country.center[1]) # Example position
+
+                # Check if the plus button is clicked
+                if self.world.draw_button(plus_button_pos) and (now - self.timer > 300):
+                    self.timer = now
+                    navigable_country.units += 1  # Increment units
+                
+                # Check if the minus button is clicked
+                if self.world.draw_button(minus_button_pos) and (now - self.timer > 300):
+                    self.timer = now
+                    navigable_country.units -= 1  # Decrement units
+
+            # Your existing code for unit placement by clicking on the country itself
             if navigable_country.hovered and pygame.mouse.get_pressed()[0] and (now - self.timer > 300):
                 self.timer = now
                 navigable_country.units += 1
+
+    # Helper function to determine if a button is clicked
+    def button_clicked(self, button_pos) -> bool:
+        button_rect = pygame.Rect(button_pos, (30, 30))
+        return button_rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]
+    
+    # Increment units for a country
+    def increment_units(self, country):
+        country.units += 1
+    
+    # Decrement units for a country
+    def decrement_units(self, country):
+        if country.units > 0:  # Prevent negative units
+            country.units -= 1
+    # def place_units(self) -> None:
+    #     navigable_countries = self.get_navigable_countries()
+    #     now = pygame.time.get_ticks()
+    #     for navigable_country in navigable_countries:
+    #         if navigable_country.hovered and pygame.mouse.get_pressed()[0] and (now - self.timer > 300):
+    #             self.timer = now
+    #             navigable_country.units += 1
 
     def get_navigable_countries(self) -> list:
         navigable_countries = []
