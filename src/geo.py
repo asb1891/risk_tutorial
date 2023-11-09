@@ -141,7 +141,7 @@ class World:
                         # else:
                         #     self.hovered_country = country
                         self.hovered_country = country
-
+    #sets up user camera controls and keys for movement and movement speed 
     def update_camera(self) -> None:
         keys = pygame.key.get_pressed()
 
@@ -158,15 +158,42 @@ class World:
         if keys[pygame.K_SPACE]:
             self.scroll = pygame.Vector2(3650, 395)
 
+
     def draw_hovered_country(self, screen: pygame.Surface) -> None:
-        #drawes the UI elements related to the country the mouse is hovering over
+    # Draw the UI elements related to the country the mouse is hovering over
         screen.blit(self.hover_surface, (1280 - 310, 720 - 110))
 
-        plus_button_pos = (1280 - 310 + 200, 720- 90)
-        minus_button_pos = (1280 - 310 + 150, 720-90)
-        #draws interactive buttons on the screen
+        plus_button_pos = (1280 - 310 + 200, 720 - 90)
+        minus_button_pos = (1280 - 310 + 150, 720 - 90)
+
+        # Draws interactive buttons on the screen
         self.draw_button(screen, "+", plus_button_pos, self.increment_armies)
         self.draw_button(screen, "-", minus_button_pos, self.decrement_armies)
+
+        # Check for a click event
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                # Get the mouse position
+                mouse_pos = event.pos
+
+                # Check if the plus or minus button was clicked
+                if plus_button_rect.collidepoint(mouse_pos):
+                    self.increment_armies()
+                elif minus_button_rect.collidepoint(mouse_pos):
+                    self.decrement_armies()
+
+    # # You would define the rectangles for the buttons when you create them
+    # plus_button_rect = pygame.Rect(plus_button_pos[0], plus_button_pos[1], button_width, button_height)
+    # minus_button_rect = pygame.Rect(minus_button_pos[0], minus_button_pos[1], button_width, button_height)  
+    # def draw_hovered_country(self, screen: pygame.Surface) -> None:
+    #     #drawes the UI elements related to the country the mouse is hovering over
+    #     screen.blit(self.hover_surface, (1280 - 310, 720 - 110))
+
+    #     plus_button_pos = (1280 - 310 + 200, 720- 90)
+    #     minus_button_pos = (1280 - 310 + 150, 720-90)
+    #     #draws interactive buttons on the screen
+    #     self.draw_button(screen, "+", plus_button_pos, self.increment_armies)
+    #     self.draw_button(screen, "-", minus_button_pos, self.decrement_armies)
 
         draw_text(
             screen,
@@ -178,6 +205,7 @@ class World:
             True,
             24,
         )
+        #creates a box for hovered countries and displayes Armies and a "+" and "-" button to add or subtract armies
         draw_multiline_text(
             screen,
             self.font,
@@ -188,30 +216,52 @@ class World:
             False,
             20,
         )
+    #dreaws actual button sizes 
+    # def draw_button(self, screen:pygame.Surface, text: str, position: tuple, on_click) -> None:
+    #     button_rect = pygame.Rect(position, (30, 30))  # Button size of 30x30
+    #     pygame.draw.rect(screen, (0, 0, 0), button_rect)  # Draw the button
 
-    def draw_button(self, screen:pygame.Surface, text: str, position: tuple, on_click) -> None:
+    #     # Draw the button text
+    #     draw_text(screen, self.font, text, (255, 255, 255), *position, True, 20)
+
+    #     # Check for click events
+    #     if button_rect.collidepoint(pygame.mouse.get_pos()):
+    #         if pygame.mouse.get_pressed()[0]:
+    #             on_click()
+    def draw_button(self, screen: pygame.Surface, text: str, position: tuple, on_click) -> None:
         button_rect = pygame.Rect(position, (30, 30))  # Button size of 30x30
-        pygame.draw.rect(screen, (0, 0, 0), button_rect)  # Draw the button
+        pygame.draw.rect(screen, (255, 255, 255), button_rect)  # Draw the button with white color
 
-        # Draw the button text
-        draw_text(screen, self.font, text, (255, 255, 255), *position, True, 20)
+        # Get the size of the text to be rendered
+        text_surface = self.font.render(text, True, (0, 0, 0))
+        text_size = text_surface.get_size()
+
+        # Calculate the position to center the text
+        text_x = position[0] + (button_rect.width - text_size[0]) // 2
+        text_y = position[1] + (button_rect.height - text_size[1]) // 2
+
+        # Draw the button text, now with black color, centered in the button
+        screen.blit(text_surface, (text_x, text_y))
 
         # Check for click events
         if button_rect.collidepoint(pygame.mouse.get_pos()):
             if pygame.mouse.get_pressed()[0]:
                 on_click()
 
+# This draw_text function must be defined elsewhere in your code
+# It should be responsible for rendering text on the screen
+
+# You would use draw_button like this:
+        # self.draw_button(screen, "+", plus_button_pos, self.increment_armies)
+        # self.draw_button(screen, "-", minus_button_pos, self.decrement_armies)
+
     def increment_armies(self) -> None:
-        print(f"\n>> PRE-INCREMENT OF ARMIES: {self.hovered_country.attack_armies}")
         if self.hovered_country and self.hovered_country.units > self.hovered_country.attack_armies:
             self.hovered_country.attack_armies += 1
-        print(f">> POST-INCREMENT OF ARMIES: {self.hovered_country.attack_armies}\n")
 
     def decrement_armies(self) -> None:
-        print(f"\n>> PRE-DECREMENT OF ARMIES: {self.hovered_country.attack_armies}")
         if self.hovered_country and self.hovered_country.attack_armies > 1:
             self.hovered_country.attack_armies -= 1
-        print(f">> POST-DECREMENT OF ARMIES: {self.hovered_country.attack_armies}\n")
 
     def create_neighbours(self) -> None:
         for k, v in self.countries.items():
