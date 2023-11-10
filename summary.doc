@@ -1,0 +1,20 @@
+    For the game Risk that I began, I used pyGame as my main framework in which to build 
+this game. Pygame allowed me to import their built in tools where I can generate UI effectively 
+to create a more visually appealing game. The most exciting aspect I found about pygame is the 
+ability to draw maps given latitudes and longitudes. I created a draw_map function in python and used
+pygames tools to render it onto the screen upon startup.
+
+    The most challening obstacles I faced were two things. Firstly what was challenging was 
+building this game off of someone else's initial code. The initial code wasn't documented
+properly so I had to throw it into ChatGPT in order to get an understanding of what was going 
+on so I can build off of it. Secondly, the game of Risk is a fairly simple game but to develop
+it as a web game is far more challenging and I found that I overscoped it. 
+
+    If I were to start this project over I would plan it out better because I realized 
+that this project is a long term project that would be challenging, for even the most experienced
+programmr, to complete in a few days. Overall I think that, eventhough the game is as functional as
+I would have liked it to be, the learning experience of not biting off more than I can chew I think is 
+more rewarding than the code I actually built.
+
+
+
